@@ -1,0 +1,5 @@
+backbone:
+  name: siglip2_vit_b16
+  model_id: hf-hub:timm/vit_base_patch16_siglip_512.v2_webli
+  input_size: [512, 512]
+  training_free: true

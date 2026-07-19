@@ -1,0 +1,4 @@
+protocol:
+  name: design_sheet
+  ref_shots: max
+  clip_length: 20

@@ -1,0 +1,8 @@
+method:
+  name: base
+  are:
+    enable: false
+  pa:
+    enable: false
+  ct:
+    enable: false

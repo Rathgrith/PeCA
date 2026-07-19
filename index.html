@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos. ECCV 2026 project page.">
+    <title>PeCA: Palette Context Assisted Inference</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top"><span class="peca">PeCA</span></a>
+      <nav aria-label="Primary navigation">
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#semantic-matching">Extension</a>
+        <a href="#citation">Citation</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="paper hero">
+        <div class="venue">ECCV 2026</div>
+        <h1><span class="peca">PeCA</span>: Palette Context Assisted<br class="desktop-break"> Inference for Test-Time Paint-Bucket<br class="desktop-break"> Colourisation on Animation Videos</h1>
+        <figure class="hero-epigraph" aria-label="Epigraph">
+          <blockquote>“A colour shines in its surroundings.”</blockquote>
+          <figcaption>Ludwig Wittgenstein</figcaption>
+        </figure>
+        <p class="authors">
+          <a href="https://rathgrith.github.io/">Dongheng Lin</a>,
+          <a href="https://jianbojiao.com/">Jianbo Jiao</a>
+        </p>
+        <p class="affiliation"><a href="https://mix.jianbojiao.com/">The MIx Group, University of Birmingham</a></p>
+        <div class="actions" aria-label="Project links">
+          <a class="button primary" href="assets/peca-paper.pdf">
+            <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z"></path>
+              <path d="M14 2v5h5"></path>
+              <path d="M9 13h6"></path>
+              <path d="M9 17h4"></path>
+            </svg>
+            <span>Paper</span>
+          </a>
+          <a class="button" href="https://kaggle.com/datasets/f4d74236ea8f91768f5c81236f84e86080cf26a4de0c0833ac760c354d0dc365">
+            <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+              <path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path>
+              <path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path>
+            </svg>
+            <span>Dataset</span>
+          </a>
+            <a class="button" href="https://github.com/Rathgrith/PeCA/tree/main/code">
+            <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+              <path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path>
+              <path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path>
+            </svg>
+            <span>Code</span>
+          </a>
+        </div>
+        <figure class="hero-figure">
+          <img src="assets/figures/teaser.png" alt="Conceptual overview of PeCA using spatial and temporal context for paint-bucket colourisation.">
+          <figcaption><span class="peca">PeCA</span> uses palette level contexts to improve region-level paint-bucket colour assignment.</figcaption>
+        </figure>
+      </section>
+
+      <section id="abstract" class="paper">
+        <div class="section-kicker">Abstract</div>
+        <p>
+          In animation production, paint-bucket colourisation assigns each enclosed region in line sketches a colour from reference design sheets. Recent automatic paint-bucket colourisation pipelines mirror this workflow via region correspondence, but correspondences can be brittle when regions are ambiguous fragments without proper context.
+        </p>
+        <p>
+          We propose Palette Context Assisted (<span class="peca">PeCA</span>), a training-free, plug-and-play framework for animation video colourisation that improves test-time reasoning over spatial and temporal contexts. <span class="peca">PeCA</span> strengthens reference coverage, aggregates noisy colour evidence, and refines predictions over time while preserving the production requirement of discrete palette colours.
+        </p>
+      </section>
+
+      <section id="method" class="paper">
+        <div class="section-kicker">Method</div>
+        <h2>🧩 Context for region-to-palette assignment</h2>
+        <p class="section-lead">
+          The input is a target line-art frame and one or more coloured references. The output is not a free-form generated image: each enclosed target region must receive one discrete palette colour from the references. <span class="peca">PeCA</span> keeps this paint-bucket interface, but makes the underlying region matching less brittle by adding context at inference time.
+        </p>
+        <figure class="wide-figure method-overview">
+          <img src="assets/figures/overview.png" alt="Overview diagram of the PeCA inference pipeline.">
+          <figcaption>
+            In plain terms, <span class="peca">PeCA</span> asks three questions before assigning a colour: which reference views better cover this target shot, which candidate region matches agree on the same palette colour, and whether neighbouring frames support or contradict the current prediction. These become
+            <span class="context-word context-word-spatial">spatial</span>,
+            <span class="context-word context-word-probabilistic">probabilistic</span>, and
+            <span class="context-word context-word-temporal">temporal</span> context.
+          </figcaption>
+        </figure>
+        <div class="method-grid">
+          <article>
+            <img src="assets/figures/are.png" alt="Active Reference Expansion algorithm diagram.">
+            <div class="context-tag context-spatial"><span aria-hidden="true">🧭</span> Spatial Context</div>
+            <h3>Active Reference Expansion</h3>
+            <p>Builds a target-aware reference pool from cheap geometric view proposals, then selects useful supports for difficult target frames.</p>
+          </article>
+          <article>
+            <img src="assets/figures/pa_soft_knn.png" alt="Soft kNN palette voting diagram for Probability Aggregation.">
+            <div class="context-tag context-probabilistic"><span aria-hidden="true">🎲</span> Probabilistic Context</div>
+            <h3>Probability Aggregation</h3>
+            <p>Aggregates top correspondence evidence in colour space, reducing sensitivity to individual spurious region matches.</p>
+          </article>
+          <article>
+            <img src="assets/figures/ct.png" alt="Cyclic-gated Temporal Fusion algorithm diagram.">
+            <div class="context-tag context-temporal"><span aria-hidden="true">⏱️</span> Temporal Context</div>
+            <h3>Cyclic-gated Temporal Fusion</h3>
+            <p>Uses neighbouring frames as temporal context and gates unreliable matches to avoid propagating colourisation mistakes.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="results" class="paper">
+        <div class="section-kicker">Results</div>
+        <h2>📊 Experiment Results</h2>
+        <p class="section-lead">
+          Across diverse settings, <span class="peca">PeCA</span> improves region-to-palette assignment while preserving paint-bucket constraints.
+        </p>
+
+        <div class="result-carousel" data-carousel>
+          <div class="carousel-controls">
+            <button class="carousel-button" type="button" data-carousel-prev aria-label="Previous result panel">
+              <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="m15 18-6-6 6-6"></path>
+              </svg>
+              <span>Prev</span>
+            </button>
+            <div class="carousel-tabs" role="tablist" aria-label="Reference protocol result panels">
+              <button class="is-active" type="button" role="tab" aria-selected="true" data-carousel-goto="0">
+                <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                  <path d="M8 9h8"></path>
+                  <path d="M8 13h5"></path>
+                </svg>
+                <span>Design-sheet</span>
+              </button>
+              <button type="button" role="tab" aria-selected="false" data-carousel-goto="1">
+                <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                  <path d="m10 9 5 3-5 3z"></path>
+                </svg>
+                <span>First-frame</span>
+              </button>
+              <button type="button" role="tab" aria-selected="false" data-carousel-goto="2">
+                <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M17 2v5h-5"></path>
+                  <path d="M7 22v-5h5"></path>
+                  <path d="M20 11a8 8 0 0 0-13-5"></path>
+                  <path d="M4 13a8 8 0 0 0 13 5"></path>
+                </svg>
+                <span>In-between</span>
+              </button>
+            </div>
+            <button class="carousel-button" type="button" data-carousel-next aria-label="Next result panel">
+              <span>Next</span>
+              <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </button>
+          </div>
+
+          <article class="carousel-slide is-active" data-carousel-slide>
+            <h3>🎨 Design-sheet references</h3>
+            <p class="slide-summary">With only design-sheet references, <span class="peca">PeCA</span> improves both trained colourisation models and frozen backbones; the largest gains appear when the base region matcher is weak or training-free.</p>
+            <div id="results-video" class="results-video">
+              <h4>Qualitative comparisons</h4>
+              <div class="video-shell">
+                <video controls preload="metadata">
+                  <source src="assets/6189_supp.mp4" type="video/mp4">
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+            <div class="result-card">
+              <h4>Quantitative metrics: one-shot key-frame colourisation on PBC-3D</h4>
+              <div class="table-scroll">
+                <table class="metrics-table">
+                  <thead>
+                    <tr>
+                      <th>Method / Backbone</th>
+                      <th>Training-free</th>
+                      <th>Acc</th>
+                      <th>Acc-Thresh</th>
+                      <th>Pix-Acc</th>
+                      <th>Pix-F-Acc</th>
+                      <th>Pix-B-MIoU</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>ColorFlow</td><td><span class="tf no">❌</span></td><td>9.72</td><td>10.81</td><td>50.64</td><td>9.16</td><td>57.17</td></tr>
+                    <tr><td>MangaNinja</td><td><span class="tf no">❌</span></td><td>14.86</td><td>16.73</td><td>7.11</td><td>28.52</td><td>0.00</td></tr>
+                    <tr><td>AniDoc</td><td><span class="tf no">❌</span></td><td>19.80</td><td>22.68</td><td>77.38</td><td>46.46</td><td>87.32</td></tr>
+                    <tr><td>Cobra</td><td><span class="tf no">❌</span></td><td>15.06</td><td>17.26</td><td>69.20</td><td>19.72</td><td>82.69</td></tr>
+                    <tr><td>MagicColor</td><td><span class="tf no">❌</span></td><td>21.48</td><td>24.81</td><td>16.34</td><td>44.04</td><td>7.63</td></tr>
+                    <tr><td>BasicPBC-Ref</td><td><span class="tf no">❌</span></td><td>52.55</td><td>56.73</td><td>90.53</td><td>72.33</td><td>94.56</td></tr>
+                    <tr><td>DACoN</td><td><span class="tf no">❌</span></td><td>67.87</td><td>72.58</td><td>96.99</td><td>91.00</td><td>99.08</td></tr>
+                    <tr><td>DACoN 1.1</td><td><span class="tf no">❌</span></td><td>68.01</td><td>72.87</td><td>96.97</td><td>91.03</td><td>99.11</td></tr>
+                    <tr class="highlight"><td>DACoN 1.1 + <span class="peca">PeCA</span></td><td><span class="tf no">❌</span></td><td>72.04 (+4.03)</td><td>77.08 (+4.21)</td><td>97.90 (+0.93)</td><td>94.04 (+3.01)</td><td>99.42 (+0.31)</td></tr>
+                    <tr><td>SAM2.1-Large (Base)</td><td><span class="tf yes">✅</span></td><td>34.54</td><td>38.95</td><td>86.76</td><td>54.12</td><td>88.37</td></tr>
+                    <tr class="highlight"><td>SAM2.1-Large + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>46.65 (+12.11)</td><td>49.92 (+10.97)</td><td>88.70 (+1.94)</td><td>66.96 (+12.84)</td><td>96.70 (+8.33)</td></tr>
+                    <tr><td>DINOv3 ConvNeXT-L (Base)</td><td><span class="tf yes">✅</span></td><td>34.90</td><td>36.35</td><td>71.32</td><td>49.79</td><td>75.93</td></tr>
+                    <tr class="highlight"><td>DINOv3 ConvNeXT-L + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>45.88 (+10.98)</td><td>46.97 (+10.62)</td><td>80.13 (+8.81)</td><td>60.15 (+10.36)</td><td>85.38 (+9.45)</td></tr>
+                    <tr><td>SigLIPv2 ViT-B/16 (Base)</td><td><span class="tf yes">✅</span></td><td>48.64</td><td>51.68</td><td>89.24</td><td>70.05</td><td>91.03</td></tr>
+                    <tr class="highlight"><td>SigLIPv2 ViT-B/16 + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>55.34 (+6.70)</td><td>58.88 (+7.20)</td><td>92.48 (+3.24)</td><td>80.37 (+10.32)</td><td>93.88 (+2.85)</td></tr>
+                    <tr><td>DINOv2 ViT-L/14 (Base)</td><td><span class="tf yes">✅</span></td><td>57.49</td><td>61.86</td><td>95.35</td><td>87.24</td><td>97.45</td></tr>
+                    <tr class="highlight"><td>DINOv2 ViT-L/14 + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>61.38 (+3.89)</td><td>65.58 (+3.72)</td><td>96.25 (+0.90)</td><td>89.31 (+2.07)</td><td>98.62 (+1.17)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="result-card">
+              <h4>Quantitative metrics: with more references</h4>
+              <div class="table-scroll">
+                <table class="metrics-table ref-table">
+                  <thead>
+                    <tr>
+                      <th># Refs</th>
+                      <th>Method / Backbone</th>
+                      <th>Training-free</th>
+                      <th>Acc</th>
+                      <th>Acc-Thresh</th>
+                      <th>Pix-Acc</th>
+                      <th>Pix-F-Acc</th>
+                      <th>Pix-B-MIoU</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>5-shot</td><td>ColorFlow</td><td><span class="tf no">❌</span></td><td>12.64</td><td>14.37</td><td>54.51</td><td>15.26</td><td>61.22</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>BasicPBC-Ref</td><td><span class="tf no">❌</span></td><td>--</td><td>64.59</td><td>96.12</td><td>83.17</td><td>98.67</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>DACoN</td><td><span class="tf no">❌</span></td><td>73.25</td><td>77.44</td><td>97.74</td><td>93.70</td><td>99.13</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>DACoN 1.1</td><td><span class="tf no">❌</span></td><td>73.91</td><td>78.23</td><td>97.84</td><td>94.28</td><td>98.92</td></tr>
+                    <tr class="highlight"><td class="ref-empty" aria-hidden="true"></td><td>DACoN 1.1 + <span class="peca">PeCA</span></td><td><span class="tf no">❌</span></td><td>77.73 (+3.82)</td><td>82.39 (+4.16)</td><td>98.87 (+1.03)</td><td>97.02 (+2.74)</td><td>99.45 (+0.53)</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>SAM2.1-Large (Base)</td><td><span class="tf yes">✅</span></td><td>43.80</td><td>46.59</td><td>87.66</td><td>62.25</td><td>96.75</td></tr>
+                    <tr class="highlight"><td class="ref-empty" aria-hidden="true"></td><td>SAM2.1-Large + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>57.23 (+13.43)</td><td>60.96 (+14.37)</td><td>91.50 (+3.84)</td><td>76.52 (+14.27)</td><td>97.18 (+0.43)</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>DINOv2 ViT-L/14 (Base)</td><td><span class="tf yes">✅</span></td><td>62.65</td><td>66.42</td><td>96.77</td><td>91.54</td><td>97.96</td></tr>
+                    <tr class="highlight"><td class="ref-empty" aria-hidden="true"></td><td>DINOv2 ViT-L/14 + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>66.46 (+3.81)</td><td>70.01 (+3.59)</td><td>97.73 (+0.96)</td><td>93.57 (+2.03)</td><td>98.83 (+0.87)</td></tr>
+                    <tr><td>max-shot</td><td>DACoN</td><td><span class="tf no">❌</span></td><td>74.31</td><td>78.48</td><td>98.04</td><td>94.27</td><td>99.10</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>DACoN 1.1</td><td><span class="tf no">❌</span></td><td>75.05</td><td>79.23</td><td>98.19</td><td>94.79</td><td>99.16</td></tr>
+                    <tr class="highlight"><td class="ref-empty" aria-hidden="true"></td><td>DACoN 1.1 + <span class="peca">PeCA</span></td><td><span class="tf no">❌</span></td><td>79.03 (+3.98)</td><td>83.43 (+4.20)</td><td>99.01 (+0.82)</td><td>97.21 (+2.42)</td><td>99.55 (+0.39)</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>SAM2.1-Large (Base)</td><td><span class="tf yes">✅</span></td><td>46.40</td><td>49.30</td><td>87.98</td><td>63.27</td><td>96.59</td></tr>
+                    <tr class="highlight"><td class="ref-empty" aria-hidden="true"></td><td>SAM2.1-Large + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>56.88 (+10.48)</td><td>60.50 (+11.20)</td><td>91.94 (+3.96)</td><td>77.49 (+14.22)</td><td>97.29 (+0.70)</td></tr>
+                    <tr><td class="ref-empty" aria-hidden="true"></td><td>DINOv2 ViT-L/14 (Base)</td><td><span class="tf yes">✅</span></td><td>63.84</td><td>67.67</td><td>97.07</td><td>91.70</td><td>98.28</td></tr>
+                    <tr class="highlight"><td class="ref-empty" aria-hidden="true"></td><td>DINOv2 ViT-L/14 + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>67.28 (+3.44)</td><td>70.82 (+3.15)</td><td>97.71 (+0.64)</td><td>93.63 (+1.93)</td><td>98.59 (+0.31)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </article>
+
+          <article class="carousel-slide" data-carousel-slide hidden>
+            <h3>🎬 First-frame reference</h3>
+            <p class="slide-summary">When the first coloured frame is the only reference, <span class="peca">PeCA</span> improves the DACoN 1.1 pipeline and several training-free backbones on both synthetic and real animation data.</p>
+            <figure class="wide-figure slide-figure">
+              <img src="assets/figures/fig_s11_first_frame.png" alt="First-frame qualitative comparison from the supplementary material.">
+              <figcaption>First-frame qualitative examples.</figcaption>
+            </figure>
+            <div class="table-scroll">
+              <table class="metrics-table wide-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method / Backbone</th>
+                    <th rowspan="2">Training-free</th>
+                    <th colspan="5">PBC-3D</th>
+                    <th colspan="5">PBC-Real</th>
+                  </tr>
+                  <tr>
+                    <th>Acc</th><th>Acc-Thresh</th><th>Pix-Acc</th><th>Pix-F-Acc</th><th>Pix-B-MIoU</th>
+                    <th>Acc</th><th>Acc-Thresh</th><th>Pix-Acc</th><th>Pix-F-Acc</th><th>Pix-B-MIoU</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>BasicPBC</td><td><span class="tf no">❌</span></td><td>56.28</td><td>60.14</td><td>93.00</td><td>77.25</td><td>97.19</td><td>59.31</td><td>62.00</td><td>91.84</td><td>72.50</td><td>98.39</td></tr>
+                  <tr><td>BasicPBC (Online*)</td><td><span class="tf no">❌</span></td><td>53.18</td><td>58.28</td><td>93.57</td><td>79.92</td><td>96.19</td><td>57.28</td><td>60.47</td><td>92.74</td><td>74.92</td><td>98.35</td></tr>
+                  <tr><td>DACoN</td><td><span class="tf no">❌</span></td><td>69.91</td><td>73.59</td><td>97.30</td><td>--</td><td>--</td><td>65.85</td><td>69.15</td><td>93.50</td><td>--</td><td>--</td></tr>
+                  <tr><td>DACoN 1.1</td><td><span class="tf no">❌</span></td><td>70.34</td><td>74.04</td><td>97.30</td><td>91.13</td><td>99.17</td><td>65.82</td><td>69.11</td><td>94.18</td><td>80.68</td><td>98.76</td></tr>
+                  <tr><td>Nano Banana 2</td><td><span class="tf no">❌</span></td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>47.78</td><td>52.17</td><td>90.39</td><td>71.63</td><td>98.46</td></tr>
+                  <tr class="highlight"><td>DACoN 1.1 + <span class="peca">PeCA</span></td><td><span class="tf no">❌</span></td><td>74.41</td><td>78.08</td><td>98.11</td><td>94.06</td><td>99.50</td><td>67.64</td><td>71.29</td><td>94.70</td><td>82.11</td><td>99.48</td></tr>
+                  <tr><td>StableDiffusion 2.1 (Base)</td><td><span class="tf yes">✅</span></td><td>32.93</td><td>34.52</td><td>87.38</td><td>58.70</td><td>94.40</td><td>46.45</td><td>48.84</td><td>89.91</td><td>64.13</td><td>97.96</td></tr>
+                  <tr class="highlight"><td>StableDiffusion 2.1 + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>40.50</td><td>42.01</td><td>90.87</td><td>71.01</td><td>96.51</td><td>48.11</td><td>49.70</td><td>90.89</td><td>67.45</td><td>98.18</td></tr>
+                  <tr><td>SAM2.1-Large (Base)</td><td><span class="tf yes">✅</span></td><td>49.10</td><td>52.46</td><td>91.64</td><td>72.40</td><td>97.38</td><td>55.63</td><td>58.31</td><td>90.32</td><td>69.21</td><td>98.73</td></tr>
+                  <tr class="highlight"><td>SAM2.1-Large + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>58.98</td><td>62.89</td><td>93.65</td><td>79.72</td><td>98.11</td><td>60.41</td><td>63.44</td><td>93.25</td><td>75.99</td><td>99.00</td></tr>
+                </tbody>
+                <tfoot><tr><td colspan="12">* Online setting: the first frame uses the ground-truth reference, and each subsequent frame is colourised using the previous frame's prediction as the reference.</td></tr></tfoot>
+              </table>
+            </div>
+
+          </article>
+
+          <article class="carousel-slide" data-carousel-slide hidden>
+            <h3>🔁 In-between reference</h3>
+            <p class="slide-summary">With only the first and last frames coloured, temporal context helps <span class="peca">PeCA</span> reduce error accumulation, including on the 204-frame Anita-Pirate stress test.</p>
+            <figure class="wide-figure slide-figure">
+              <img src="assets/figures/anita_pirate.png" alt="In-between qualitative comparison on the Anita-Pirate long animation sequence.">
+              <figcaption>Long-sequence Anita-Pirate examples under the in-between reference protocol.</figcaption>
+            </figure>
+            <div class="table-scroll">
+              <table class="metrics-table wide-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method / Backbone</th>
+                    <th rowspan="2">Training-free</th>
+                    <th colspan="5">PBC-3D</th>
+                    <th colspan="5">Anita-Pirate</th>
+                  </tr>
+                  <tr>
+                    <th>Acc</th><th>Acc-Thresh</th><th>Pix-Acc</th><th>Pix-F-Acc</th><th>Pix-B-MIoU</th>
+                    <th>Acc</th><th>Acc-Thresh</th><th>Pix-Acc</th><th>Pix-F-Acc</th><th>Pix-B-MIoU</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>BasicPBC</td><td><span class="tf no">❌</span></td><td>63.38</td><td>67.77</td><td>94.84</td><td>84.20</td><td>97.54</td><td>28.54</td><td>28.97</td><td>88.52</td><td>39.77</td><td>96.63</td></tr>
+                  <tr><td>BasicPBC (Online*)</td><td><span class="tf no">❌</span></td><td>53.97</td><td>59.13</td><td>93.74</td><td>80.62</td><td>96.32</td><td>7.71</td><td>7.94</td><td>32.97</td><td>17.00</td><td>35.93</td></tr>
+                  <tr><td>DACoN 1.1</td><td><span class="tf no">❌</span></td><td>78.02</td><td>82.11</td><td>98.48</td><td>95.51</td><td>99.47</td><td>38.16</td><td>39.36</td><td>94.29</td><td>61.65</td><td>99.16</td></tr>
+                  <tr class="highlight"><td>DACoN 1.1 + <span class="peca">PeCA</span></td><td><span class="tf no">❌</span></td><td>80.80</td><td>84.82</td><td>99.00</td><td>97.18</td><td>99.58</td><td>41.24</td><td>42.16</td><td>94.29</td><td>62.78</td><td>99.43</td></tr>
+                  <tr><td>DINOv2 ViT-L/14 (Base)</td><td><span class="tf yes">✅</span></td><td>66.25</td><td>70.17</td><td>97.73</td><td>93.36</td><td>98.89</td><td>28.55</td><td>29.30</td><td>93.06</td><td>53.88</td><td>99.40</td></tr>
+                  <tr class="highlight"><td>DINOv2 ViT-L/14 + <span class="peca">PeCA</span></td><td><span class="tf yes">✅</span></td><td>69.29</td><td>72.60</td><td>98.23</td><td>94.49</td><td>99.33</td><td>31.01</td><td>31.81</td><td>93.39</td><td>57.18</td><td>99.49</td></tr>
+                </tbody>
+                <tfoot><tr><td colspan="12">* Online setting: the first frame uses the ground-truth reference, and each subsequent frame is colourised using the previous frame's prediction as the reference.</td></tr></tfoot>
+              </table>
+            </div>
+
+          </article>
+        </div>
+      </section>
+
+      <section id="semantic-matching" class="paper">
+        <div class="section-kicker">Extension to Natural Semantics</div>
+        <h2>🌿 Extending to semantic matching in natural videos</h2>
+        <p class="section-lead">
+          The same idea can be tested outside cartoon colourisation by replacing palette colours with semantic labels. In the VIPSeg diagnostic, reference frames provide panoptic semantic labels, target frames are over-segmented into SLIC superpixels, and the task is to propagate semantic labels from reference regions to target regions by matching region descriptors.
+        </p>
+        <figure class="wide-figure semantic-figure">
+          <img src="assets/figures/natural_pipeline.png" alt="Pipeline for reference-guided semantic region label propagation on natural videos.">
+          <figcaption>Pipeline: external labelled reference frames and target RGB frames are converted into superpixels, then reference labels are propagated through region matching.</figcaption>
+        </figure>
+        <div class="result-card">
+          <h4>VIPSeg region label propagation results</h4>
+          <p class="slide-summary"><span class="peca">PeCA</span> improves direct hard matching across two generic pretrained backbones and all metrics, suggesting the context mechanism transfers beyond cartoon palette assignment.</p>
+          <div class="table-scroll">
+            <table class="metrics-table natural-table">
+              <thead>
+                <tr>
+                  <th>Backbone</th>
+                  <th>Pipeline</th>
+                  <th>Seg-Acc</th>
+                  <th>Pix-Acc</th>
+                  <th>Pix-MIoU</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>SAM2.1-Large</td><td>Base</td><td>33.35</td><td>33.05</td><td>6.78</td></tr>
+                <tr class="highlight"><td>SAM2.1-Large</td><td><span class="peca">PeCA</span> (ours)</td><td>38.95</td><td>38.79</td><td>10.85</td></tr>
+                <tr><td>DINOv2 ViT-L/14</td><td>Base</td><td>44.12</td><td>44.03</td><td>12.68</td></tr>
+                <tr class="highlight"><td>DINOv2 ViT-L/14</td><td><span class="peca">PeCA</span> (ours)</td><td>52.47</td><td>52.38</td><td>19.23</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">Evaluation uses the VIPSeg validation split: 343 videos and 8,255 frames. Metrics are frame-wise averages over SLIC superpixel predictions.</p>
+        </div>
+        <figure class="wide-figure semantic-figure semantic-qualitative">
+          <img src="assets/figures/vipseg_qualitative.png" alt="Qualitative VIPSeg semantic label propagation examples comparing Base, PeCA, and ground truth.">
+          <figcaption>Qualitative examples: compared with direct matching, <span class="peca">PeCA</span> produces more coherent semantic regions with fewer fragmented labels.</figcaption>
+        </figure>
+      </section>
+
+      <section id="citation" class="paper">
+        <div class="section-kicker">Citation</div>
+        <div class="citation-header">
+          <h2>📚 BibTeX</h2>
+          <button id="copy-citation" type="button">
+            <svg class="button-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <rect x="8" y="8" width="12" height="12" rx="2"></rect>
+              <path d="M4 16V6a2 2 0 0 1 2-2h10"></path>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <pre><code id="bibtex">@inproceedings{lin2026peca,
+  title={PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos},
+  author={Dongheng Lin and Jianbo Jiao},
+  booktitle={European Conference on Computer Vision},
+  year={2026}
+}</code></pre>
+      </section>
+    </main>
+
+    <footer>
+      <p>Project page for <span class="peca">PeCA</span>, ECCV 2026. Code release is in preparation.</p>
+    </footer>
+
+    <script>
+      const carousel = document.querySelector("[data-carousel]");
+      const slides = [...document.querySelectorAll("[data-carousel-slide]")];
+      const tabs = [...document.querySelectorAll("[data-carousel-goto]")];
+      let activeSlide = 0;
+      const showSlide = (index, direction = 1) => {
+        if (!slides.length) return;
+        const nextSlide = (index + slides.length) % slides.length;
+        if (nextSlide === activeSlide) return;
+        carousel?.classList.remove("slide-forward", "slide-back");
+        void carousel?.offsetWidth;
+        carousel?.classList.add(direction < 0 ? "slide-back" : "slide-forward");
+        activeSlide = nextSlide;
+        slides.forEach((slide, i) => {
+          slide.hidden = i !== activeSlide;
+          slide.classList.toggle("is-active", i === activeSlide);
+        });
+        tabs.forEach((tab, i) => {
+          const selected = i === activeSlide;
+          tab.classList.toggle("is-active", selected);
+          tab.setAttribute("aria-selected", selected ? "true" : "false");
+        });
+      };
+      carousel?.querySelector("[data-carousel-prev]")?.addEventListener("click", () => showSlide(activeSlide - 1, -1));
+      carousel?.querySelector("[data-carousel-next]")?.addEventListener("click", () => showSlide(activeSlide + 1, 1));
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const target = Number(tab.dataset.carouselGoto);
+          showSlide(target, target < activeSlide ? -1 : 1);
+        });
+      });
+
+      const copyButton = document.querySelector("#copy-citation");
+      const copyButtonLabel = copyButton?.querySelector("span");
+      const bibtex = document.querySelector("#bibtex");
+      copyButton?.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(bibtex.textContent.trim());
+          copyButtonLabel.textContent = "Copied";
+          setTimeout(() => copyButtonLabel.textContent = "Copy", 1600);
+        } catch {
+          copyButtonLabel.textContent = "Select text";
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+backbone:
+  name: dacon_v1_1
+  checkpoint: checkpoints/dacon_v1_1.pth
+  checkpoint_source: https://github.com/kzmngt/DACoN#test
+  checkpoint_sha256: 6312ecb6a928bd34e0a044a1108a55ebc02bbfa1a08c44437519df154609139c
+  training_free: false

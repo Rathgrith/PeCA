@@ -1,0 +1,6 @@
+backbone:
+  name: sam2_1_large
+  model_id: facebook/sam2.1-hiera-large
+  input_size: [512, 512]
+  amp_dtype: bf16
+  training_free: true

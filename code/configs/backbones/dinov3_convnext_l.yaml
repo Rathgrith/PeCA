@@ -1,0 +1,5 @@
+backbone:
+  name: dinov3_convnext_l
+  model_id: hf-hub:timm/convnext_large.dinov3_lvd1689m
+  input_size: [512, 512]
+  training_free: true

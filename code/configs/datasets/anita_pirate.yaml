@@ -1,0 +1,6 @@
+dataset:
+  name: anita_pirate
+  root: data/Anita-Pirate
+  source: https://kaggle.com/datasets/f4d74236ea8f91768f5c81236f84e86080cf26a4de0c0833ac760c354d0dc365
+  expected_sequences: 1
+  expected_frames: 206

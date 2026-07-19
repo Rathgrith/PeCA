@@ -1,0 +1,7 @@
+backbone:
+  name: dinov2_vitl14
+  model_id: facebookresearch/dinov2:dinov2_vitl14
+  repository: facebookresearch/dinov2
+  revision: 7764ea0f912e53c92e82eb78a2a1631e92725fc8
+  input_size: [518, 518]
+  training_free: true

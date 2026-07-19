@@ -1,0 +1,29 @@
+method:
+  name: peca
+  are:
+    enable: true
+    # Paper: B=31 selected augmented views; the original reference is additional.
+    num_views: 31
+    candidate_multiplier: 4
+    target_frames: 20
+    split_across_references: true
+    batch_size: 1
+    horizontal_flip_probability: 0.5
+    vertical_flip_probability: 0.1
+    rotate90_probability: 0.2
+    affine_probability: 1.0
+    affine_degrees: 30.0
+    affine_translate: [0.5, 0.5]
+    affine_scale: [0.5, 2.0]
+  pa:
+    enable: true
+    top_k: 64
+    temperature: 0.05
+  ct:
+    enable: true
+    gamma: 1.0
+    bidirectional: true
+    num_sweeps: 1
+    cycle_consistency: true
+    eps: 1.0e-8
+    palette_tolerance: 1.0e-5

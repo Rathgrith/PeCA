@@ -1,0 +1,8 @@
+include .gitignore
+include CITATION.cff
+include THIRD_PARTY.md
+include environment.yml
+include run.sh
+recursive-include configs *.yaml
+recursive-include manifests *.sha256
+recursive-include third_party_licenses *

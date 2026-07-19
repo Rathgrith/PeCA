@@ -1,0 +1,17 @@
+extends:
+  - datasets/pbc3d.yaml
+  - protocols/design_sheet_1shot.yaml
+  - backbones/sam2_1_large.yaml
+  - methods/peca.yaml
+
+experiment:
+  seed: null
+  num_gpus: 1
+
+output:
+  save_images: true
+  save_json: true
+
+wandb:
+  enable: false
+  project: peca

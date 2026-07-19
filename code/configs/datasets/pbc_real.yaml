@@ -1,0 +1,8 @@
+dataset:
+  name: pbc_real
+  root: data/PaintBucket_Char_v2/test/PaintBucket_Real
+  source: https://github.com/ykdai/BasicPBC#data-download
+  access: Request non-commercial evaluation access from the BasicPBC authors.
+  expected_sequences: 20
+  expected_frames: 200
+
