@@ -84,10 +84,15 @@ The checkpoint source and SHA-256 are stored in `configs/backbones/dacon_v1_1.ya
 
 ```bibtex
 @inproceedings{lin2026peca,
-  title={PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos},
-  author={Dongheng Lin and Jianbo Jiao},
-  booktitle={European Conference on Computer Vision},
-  year={2026}
+title = "PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos",
+author = "Dongheng Lin and Jianbo Jiao",
+note = "The 19th European Conference on Computer Vision, ECCV 2026 ; Conference date: 08-09-2026 Through 12-09-2026",
+year = "2026",
+language = "English",
+series = "Lecture Notes in Computer Science",
+publisher = "Springer",
+booktitle = "Computer Vision – ECCV 2026",
+url = "https://eccv.ecva.net/Conferences/2026",
 }
 ```
 ## Licenses & Acknowledgements
