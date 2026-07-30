@@ -7,7 +7,7 @@ Official ECCV 2026 code release for **PeCA: Palette Context Assisted Inference f
 
 
 
-[![PeCA overview](../assets/figures/teaser.png)](https://rathgrith.github.io/PeCA/)
+[![PeCA framework overview](../assets/figures/overview.png)](https://rathgrith.github.io/PeCA/)
 
 ## Setup
 
