@@ -8,7 +8,7 @@ Official ECCV 2026 code release for **PeCA: Palette Context Assisted Inference f
 [🗂️ **Anita-Pirate Dataset**](https://www.kaggle.com/datasets/f4d74236ea8f91768f5c81236f84e86080cf26a4de0c0833ac760c354d0dc365) ·
 
 
-[![PeCA overview](assets/figures/teaser.png)](https://rathgrith.github.io/PeCA/)
+[![PeCA framework overview](assets/figures/overview.png)](https://rathgrith.github.io/PeCA/)
 
 Please refer to ```./code/README.md``` for code implementation and detailed usage documents.
 
