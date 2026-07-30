@@ -2,6 +2,13 @@
 
 Official ECCV 2026 code release for **PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos**.
 
+[🌐 **Project Page**](https://rathgrith.github.io/PeCA/) ·
+[📄 **Paper**](https://rathgrith.github.io/assets/peca_eccv2026.pdf) ·
+
+
+
+[![PeCA overview](../assets/figures/teaser.png)](https://rathgrith.github.io/PeCA/)
+
 ## Setup
 
 ```bash
@@ -111,4 +118,3 @@ Other foundation-model implementations and weights are downloaded at runtime and
 - [Stable Diffusion 2.1](https://huggingface.co/sd2-community/stable-diffusion-2-1)
 
 For datasets, PBC-3D and PBC-Real are governed by the [BasicPBC repository and its data terms](https://github.com/ykdai/BasicPBC#data-download). In particular, PBC-Real requires a request to the original authors. Anita-Pirate is derived from the CC-BY-licensed [Anita Dataset](https://zhenglinpan.github.io/AnitaDataset_homepage/).
-
